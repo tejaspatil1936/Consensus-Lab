@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    host: true, // This allows network access
     proxy: {
       '/api': {
         target: 'http://localhost:9090',
