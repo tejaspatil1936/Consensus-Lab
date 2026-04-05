@@ -3,104 +3,217 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ProxyShield Dashboard</title>
+  <title>ProxyShield — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <div class="header">
-    <div class="header-left">
-      <span class="logo">🛡️ ProxyShield</span>
-      <span class="subtitle">High-Performance Reverse Proxy</span>
-    </div>
-    <div class="header-right">
-      <span class="status-indicator" id="status-dot"></span>
-      <span class="status-text" id="status-text">Connecting...</span>
-    </div>
-  </div>
 
-  <div class="container">
-    <!-- Stats Cards -->
-    <div class="stats-grid">
-      <div class="stat-card stat-rps">
-        <div class="stat-label">Requests/sec</div>
-        <div class="stat-value" id="stat-rps">0.0</div>
-      </div>
-      <div class="stat-card stat-forwarded">
-        <div class="stat-label">Forwarded</div>
-        <div class="stat-value" id="stat-forwarded">0</div>
-      </div>
-      <div class="stat-card stat-blocked">
-        <div class="stat-label">Blocked</div>
-        <div class="stat-value" id="stat-blocked">0</div>
-      </div>
-      <div class="stat-card stat-bans">
-        <div class="stat-label">Active Bans</div>
-        <div class="stat-value" id="stat-bans">0</div>
-      </div>
-      <div class="stat-card stat-uptime">
-        <div class="stat-label">Uptime</div>
-        <div class="stat-value" id="stat-uptime">0s</div>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">🛡️</div>
+      <div>
+        <div class="brand-name">ProxyShield</div>
+        <div class="brand-sub">Security Dashboard</div>
       </div>
     </div>
 
-    <!-- Threat Distribution -->
-    <div class="section">
-      <div class="section-title">Threat Distribution</div>
-      <div class="threat-grid" id="threat-grid">
-        <div class="threat-item">
-          <span class="threat-tag tag-sql">SQL_INJECTION</span>
-          <span class="threat-count" id="threat-SQL_INJECTION">0</span>
-        </div>
-        <div class="threat-item">
-          <span class="threat-tag tag-xss">XSS</span>
-          <span class="threat-count" id="threat-XSS">0</span>
-        </div>
-        <div class="threat-item">
-          <span class="threat-tag tag-brute">BRUTE_FORCE</span>
-          <span class="threat-count" id="threat-BRUTE_FORCE">0</span>
-        </div>
-        <div class="threat-item">
-          <span class="threat-tag tag-honeypot">HONEYPOT_TRAP</span>
-          <span class="threat-count" id="threat-HONEYPOT_TRAP">0</span>
-        </div>
-        <div class="threat-item">
-          <span class="threat-tag tag-entropy">HIGH_ENTROPY</span>
-          <span class="threat-count" id="threat-HIGH_ENTROPY">0</span>
-        </div>
-        <div class="threat-item">
-          <span class="threat-tag tag-blacklist">BLACKLISTED_IP</span>
-          <span class="threat-count" id="threat-BLACKLISTED_IP">0</span>
-        </div>
-        <div class="threat-item">
-          <span class="threat-tag tag-ratelimit">RATE_LIMITED</span>
-          <span class="threat-count" id="threat-RATE_LIMITED">0</span>
-        </div>
-      </div>
-    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Overview</div>
+      <a class="nav-item active" href="#">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 10a8 8 0 1116 0A8 8 0 012 10zm8-4a1 1 0 00-1 1v3H6a1 1 0 100 2h3v3a1 1 0 102 0v-3h3a1 1 0 100-2h-3V7a1 1 0 00-1-1z" clip-rule="evenodd" fill-rule="evenodd"/></svg>
+        Live Monitor
+      </a>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 000 2h10a1 1 0 100-2H3zm0 4a1 1 0 000 2h6a1 1 0 100-2H3zm0 4a1 1 0 000 2h10a1 1 0 100-2H3z" clip-rule="evenodd"/></svg>
+        Event Log
+      </a>
+      <div class="nav-label" style="margin-top:16px">Security</div>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        Threats
+      </a>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/></svg>
+        Blocked IPs
+      </a>
+    </nav>
 
-    <!-- Live Event Feed -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-title">Live Event Feed</div>
-        <button class="clear-btn" onclick="clearFeed()">Clear</button>
+    <div class="sidebar-status">
+      <div class="conn-row">
+        <span class="conn-dot" id="status-dot"></span>
+        <span class="conn-text" id="status-text">Connecting…</span>
       </div>
-      <div class="table-wrapper">
-        <table class="event-table">
-          <thead>
-            <tr>
-              <th class="col-time">Time</th>
-              <th class="col-event">Event</th>
-              <th class="col-ip">IP</th>
-              <th class="col-path">Path</th>
-              <th class="col-tag">Threat</th>
-              <th class="col-latency">Latency</th>
-            </tr>
-          </thead>
-          <tbody id="event-feed"></tbody>
-        </table>
-      </div>
+      <div class="conn-hint">SSE stream</div>
     </div>
-  </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">Live Monitor</h1>
+        <span class="page-sub">Real-time traffic &amp; threat detection</span>
+      </div>
+      <div class="topbar-right">
+        <div class="uptime-pill">⏱ Uptime: <strong id="stat-uptime">—</strong></div>
+        <button class="btn-clear" onclick="clearFeed()">Clear feed</button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- KPI Row -->
+      <div class="kpi-row">
+        <div class="kpi-card kpi-rps">
+          <div class="kpi-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="stat-rps">0.0</div>
+            <div class="kpi-label">Requests / sec</div>
+          </div>
+          <div class="kpi-spark" id="spark-rps"></div>
+        </div>
+
+        <div class="kpi-card kpi-fwd">
+          <div class="kpi-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="stat-forwarded">0</div>
+            <div class="kpi-label">Forwarded</div>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-blocked">
+          <div class="kpi-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="stat-blocked">0</div>
+            <div class="kpi-label">Blocked</div>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-bans">
+          <div class="kpi-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="stat-bans">0</div>
+            <div class="kpi-label">Active Bans</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Middle row: Threat distribution + mini chart -->
+      <div class="mid-row">
+
+        <!-- Threat breakdown -->
+        <div class="card threats-card">
+          <div class="card-header">
+            <span class="card-title">Threat Breakdown</span>
+            <span class="card-badge" id="total-threats-badge">0 total</span>
+          </div>
+          <div class="threat-list">
+            <div class="threat-row">
+              <span class="threat-dot dot-sql"></span>
+              <span class="threat-name">SQL Injection</span>
+              <div class="threat-bar-wrap"><div class="threat-bar bar-sql" id="bar-SQL_INJECTION"></div></div>
+              <span class="threat-num" id="threat-SQL_INJECTION">0</span>
+            </div>
+            <div class="threat-row">
+              <span class="threat-dot dot-xss"></span>
+              <span class="threat-name">XSS</span>
+              <div class="threat-bar-wrap"><div class="threat-bar bar-xss" id="bar-XSS"></div></div>
+              <span class="threat-num" id="threat-XSS">0</span>
+            </div>
+            <div class="threat-row">
+              <span class="threat-dot dot-brute"></span>
+              <span class="threat-name">Brute Force</span>
+              <div class="threat-bar-wrap"><div class="threat-bar bar-brute" id="bar-BRUTE_FORCE"></div></div>
+              <span class="threat-num" id="threat-BRUTE_FORCE">0</span>
+            </div>
+            <div class="threat-row">
+              <span class="threat-dot dot-honeypot"></span>
+              <span class="threat-name">Honeypot Trap</span>
+              <div class="threat-bar-wrap"><div class="threat-bar bar-honeypot" id="bar-HONEYPOT_TRAP"></div></div>
+              <span class="threat-num" id="threat-HONEYPOT_TRAP">0</span>
+            </div>
+            <div class="threat-row">
+              <span class="threat-dot dot-entropy"></span>
+              <span class="threat-name">High Entropy</span>
+              <div class="threat-bar-wrap"><div class="threat-bar bar-entropy" id="bar-HIGH_ENTROPY"></div></div>
+              <span class="threat-num" id="threat-HIGH_ENTROPY">0</span>
+            </div>
+            <div class="threat-row">
+              <span class="threat-dot dot-blacklist"></span>
+              <span class="threat-name">Blacklisted IP</span>
+              <div class="threat-bar-wrap"><div class="threat-bar bar-blacklist" id="bar-BLACKLISTED_IP"></div></div>
+              <span class="threat-num" id="threat-BLACKLISTED_IP">0</span>
+            </div>
+            <div class="threat-row">
+              <span class="threat-dot dot-ratelimit"></span>
+              <span class="threat-name">Rate Limited</span>
+              <div class="threat-bar-wrap"><div class="threat-bar bar-ratelimit" id="bar-RATE_LIMITED"></div></div>
+              <span class="threat-num" id="threat-RATE_LIMITED">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RPS sparkline card -->
+        <div class="card sparkline-card">
+          <div class="card-header">
+            <span class="card-title">Request Rate</span>
+            <span class="card-badge">last 60s</span>
+          </div>
+          <div class="sparkline-wrap">
+            <canvas id="rps-canvas" width="320" height="100"></canvas>
+          </div>
+          <div class="spark-footer">
+            <span>Peak: <strong id="spark-peak">0</strong> req/s</span>
+            <span>Avg: <strong id="spark-avg">0</strong> req/s</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Event feed -->
+      <div class="card feed-card">
+        <div class="card-header">
+          <span class="card-title">Live Event Feed</span>
+          <div class="feed-controls">
+            <span class="feed-count" id="feed-count">0 events</span>
+            <label class="pause-toggle">
+              <input type="checkbox" id="pause-chk" />
+              <span>Pause</span>
+            </label>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="feed-table">
+            <thead>
+              <tr>
+                <th style="width:80px">Time</th>
+                <th style="width:110px">Status</th>
+                <th style="width:115px">IP</th>
+                <th>Path</th>
+                <th style="width:160px">Threat</th>
+                <th style="width:75px;text-align:right">Latency</th>
+              </tr>
+            </thead>
+            <tbody id="event-feed"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
 
   <script src="/app.js"></script>
 </body>
