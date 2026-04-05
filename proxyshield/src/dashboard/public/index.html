@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProxyShield — Security Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+  <!-- Config toast -->
+  <div id="config-toast" class="config-toast hidden" role="status">
+    <svg class="toast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.32 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span id="config-toast-text"></span>
+  </div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-brand">
+      <div class="shield-icon">
+        <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+          <path d="M14 2L4 6.5V13.5C4 19.25 8.4 24.65 14 26C19.6 24.65 24 19.25 24 13.5V6.5L14 2Z" fill="url(#sg)" opacity="0.12"/>
+          <path d="M14 2L4 6.5V13.5C4 19.25 8.4 24.65 14 26C19.6 24.65 24 19.25 24 13.5V6.5L14 2Z" stroke="url(#sg)" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M10 14L12.5 16.5L18 11" stroke="url(#sg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs><linearGradient id="sg" x1="4" y1="2" x2="24" y2="26"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1 class="brand-name">ProxyShield</h1>
+        <span class="brand-sub">Security Dashboard</span>
+      </div>
+    </div>
+    <div class="header-meta">
+      <div class="uptime-chip" id="uptime-chip">
+        <span class="uptime-dot"></span>
+        <span id="uptime-text">0s uptime</span>
+      </div>
+      <div class="version-badge">v1.0.0</div>
+      <div id="status-pill" class="status-pill disconnected">
+        <span class="status-ping"></span>
+        <span id="status-label">Connecting</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- Stats -->
+    <section class="stats-strip">
+      <div class="stat-card" style="--accent:#6366f1;--accent-bg:rgba(99,102,241,0.08);--delay:0ms">
+        <div class="stat-icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div class="stat-body">
+          <div class="stat-label">Requests / sec</div>
+          <div class="stat-value" id="rps">0.0</div>
+        </div>
+      </div>
+      <div class="stat-card" style="--accent:#10b981;--accent-bg:rgba(16,185,129,0.08);--delay:50ms">
+        <div class="stat-icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        <div class="stat-body">
+          <div class="stat-label">Total Forwarded</div>
+          <div class="stat-value" id="total-forwarded">0</div>
+        </div>
+      </div>
+      <div class="stat-card stat-blocked-card" style="--accent:#ef4444;--accent-bg:rgba(239,68,68,0.08);--delay:100ms">
+        <div class="stat-icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+        <div class="stat-body">
+          <div class="stat-label">Total Blocked</div>
+          <div class="stat-value" id="total-blocked">0</div>
+        </div>
+      </div>
+      <div class="stat-card" style="--accent:#f59e0b;--accent-bg:rgba(245,158,11,0.08);--delay:150ms">
+        <div class="stat-icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <div class="stat-body">
+          <div class="stat-label">Active Bans</div>
+          <div class="stat-value" id="active-bans">0</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Middle row -->
+    <section class="middle-row">
+      <!-- Traffic chart -->
+      <div class="card chart-card" style="--delay:200ms">
+        <div class="card-header">
+          <span class="section-label">Live Traffic</span>
+          <div class="legend">
+            <span class="legend-item"><span class="legend-dot" style="background:#10b981"></span>Forwarded</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#ef4444"></span>Blocked</span>
+          </div>
+        </div>
+        <div class="bar-chart-wrap">
+          <div class="bar-chart" id="bar-chart"></div>
+        </div>
+        <div class="chart-footer">60-second rolling window</div>
+      </div>
+
+      <!-- Threats -->
+      <div class="card threat-card" style="--delay:250ms">
+        <div class="card-header">
+          <span class="section-label">Threat Distribution</span>
+          <span class="threat-total" id="threat-total">0 threats</span>
+        </div>
+        <div id="threat-bars" class="threat-bars"></div>
+        <div id="threat-empty" class="threat-empty">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="1.2"><path d="M12 2L3 7v5c0 5.25 3.84 10.17 9 11.38 5.16-1.21 9-6.13 9-11.38V7l-9-5z"/></svg>
+          <span>No threats detected yet</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Event feed -->
+    <section class="card feed-card" style="--delay:300ms">
+      <div class="card-header feed-header">
+        <span class="section-label">Live Event Feed</span>
+        <div class="feed-controls">
+          <span class="event-count-badge" id="event-count">0 events</span>
+          <button class="clear-btn" id="clear-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+            Clear
+          </button>
+        </div>
+      </div>
+      <div class="feed-table-head">
+        <span>Time</span>
+        <span>Status</span>
+        <span>Method</span>
+        <span>IP Address</span>
+        <span>Path</span>
+        <span>Threat</span>
+      </div>
+      <div class="feed-list" id="events">
+        <div class="feed-empty" id="feed-empty">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="1"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <p>Waiting for traffic...</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
