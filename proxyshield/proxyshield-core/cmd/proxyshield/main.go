@@ -27,7 +27,11 @@ func main() {
 	logger.SetVerbose(*verbose)
 
 	if *doBenchmark {
+		// Silence per-request logs during benchmark — only print the results table.
+		logger.SetVerbose(false)
+		logger.Silence(true)
 		if err := benchmark.Run(*configPath, *requests, *concurrency); err != nil {
+			logger.Silence(false)
 			logger.Error("benchmark failed", logger.F("error", err.Error()))
 			os.Exit(1)
 		}

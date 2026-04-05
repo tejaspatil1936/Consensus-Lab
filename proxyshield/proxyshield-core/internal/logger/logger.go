@@ -23,9 +23,13 @@ func F(key string, value interface{}) Field {
 type Logger struct {
 	mu      sync.Mutex
 	verbose bool
+	silent  bool
 }
 
 func (l *Logger) write(w *os.File, level, msg string, fields []Field) {
+	if l.silent {
+		return
+	}
 	entry := make(map[string]interface{}, len(fields)+3)
 	entry["level"] = level
 	entry["message"] = msg
@@ -77,6 +81,11 @@ var verbose bool
 func SetVerbose(v bool) {
 	verbose = v
 	defaultLogger.verbose = v
+}
+
+// Silence suppresses all log output when set to true. Used in benchmark mode.
+func Silence(s bool) {
+	defaultLogger.silent = s
 }
 
 // Info logs an informational message using the default logger.
