@@ -1,4 +1,8 @@
 #!/bin/bash
+# Resolve the directory this script lives in, regardless of where it's called from.
+DEMO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CORE_DIR="$DEMO_DIR/../proxyshield-core"
+
 echo ""
 echo "╔══════════════════════════════════════════════════════╗"
 echo "║   KeyVault Demo — ProxyShield in Action              ║"
@@ -6,20 +10,22 @@ echo "╚═══════════════════════�
 echo ""
 
 echo "[1/3] Starting KeyVault backend on :3000..."
-cd backend && node server.js &
+node "$DEMO_DIR/backend/server.js" &
 BACKEND_PID=$!
-cd ..
 sleep 2
 
 echo "[2/3] Starting ProxyShield (Go) on :9090..."
-../proxyshield-core/proxyshield-core --config ./proxy-config.json &
+if [ ! -f "$CORE_DIR/proxyshield-core" ]; then
+  echo "    Binary not found — building..."
+  (cd "$CORE_DIR" && go build -o proxyshield-core ./cmd/proxyshield/) || { echo "Build failed. Is Go installed?"; exit 1; }
+fi
+"$CORE_DIR/proxyshield-core" --config "$DEMO_DIR/proxy-config.json" &
 PROXY_PID=$!
 sleep 2
 
 echo "[3/3] Starting React frontend on :5173..."
-cd frontend && npx vite &
+(cd "$DEMO_DIR/frontend" && npx vite) &
 FRONTEND_PID=$!
-cd ..
 
 echo ""
 echo "╔══════════════════════════════════════════════════════╗"
