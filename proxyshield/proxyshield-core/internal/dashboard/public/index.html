@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProxyShield Dashboard</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <span class="logo">🛡️ ProxyShield</span>
+      <span class="subtitle">High-Performance Reverse Proxy</span>
+    </div>
+    <div class="header-right">
+      <span class="status-indicator" id="status-dot"></span>
+      <span class="status-text" id="status-text">Connecting...</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card stat-rps">
+        <div class="stat-label">Requests/sec</div>
+        <div class="stat-value" id="stat-rps">0.0</div>
+      </div>
+      <div class="stat-card stat-forwarded">
+        <div class="stat-label">Forwarded</div>
+        <div class="stat-value" id="stat-forwarded">0</div>
+      </div>
+      <div class="stat-card stat-blocked">
+        <div class="stat-label">Blocked</div>
+        <div class="stat-value" id="stat-blocked">0</div>
+      </div>
+      <div class="stat-card stat-bans">
+        <div class="stat-label">Active Bans</div>
+        <div class="stat-value" id="stat-bans">0</div>
+      </div>
+      <div class="stat-card stat-uptime">
+        <div class="stat-label">Uptime</div>
+        <div class="stat-value" id="stat-uptime">0s</div>
+      </div>
+    </div>
+
+    <!-- Threat Distribution -->
+    <div class="section">
+      <div class="section-title">Threat Distribution</div>
+      <div class="threat-grid" id="threat-grid">
+        <div class="threat-item">
+          <span class="threat-tag tag-sql">SQL_INJECTION</span>
+          <span class="threat-count" id="threat-SQL_INJECTION">0</span>
+        </div>
+        <div class="threat-item">
+          <span class="threat-tag tag-xss">XSS</span>
+          <span class="threat-count" id="threat-XSS">0</span>
+        </div>
+        <div class="threat-item">
+          <span class="threat-tag tag-brute">BRUTE_FORCE</span>
+          <span class="threat-count" id="threat-BRUTE_FORCE">0</span>
+        </div>
+        <div class="threat-item">
+          <span class="threat-tag tag-honeypot">HONEYPOT_TRAP</span>
+          <span class="threat-count" id="threat-HONEYPOT_TRAP">0</span>
+        </div>
+        <div class="threat-item">
+          <span class="threat-tag tag-entropy">HIGH_ENTROPY</span>
+          <span class="threat-count" id="threat-HIGH_ENTROPY">0</span>
+        </div>
+        <div class="threat-item">
+          <span class="threat-tag tag-blacklist">BLACKLISTED_IP</span>
+          <span class="threat-count" id="threat-BLACKLISTED_IP">0</span>
+        </div>
+        <div class="threat-item">
+          <span class="threat-tag tag-ratelimit">RATE_LIMITED</span>
+          <span class="threat-count" id="threat-RATE_LIMITED">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Event Feed -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Live Event Feed</div>
+        <button class="clear-btn" onclick="clearFeed()">Clear</button>
+      </div>
+      <div class="table-wrapper">
+        <table class="event-table">
+          <thead>
+            <tr>
+              <th class="col-time">Time</th>
+              <th class="col-event">Event</th>
+              <th class="col-ip">IP</th>
+              <th class="col-path">Path</th>
+              <th class="col-tag">Threat</th>
+              <th class="col-latency">Latency</th>
+            </tr>
+          </thead>
+          <tbody id="event-feed"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
