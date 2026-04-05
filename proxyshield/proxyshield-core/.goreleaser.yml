@@ -1,0 +1,52 @@
+project_name: proxyshield
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: proxyshield
+    main: ./cmd/proxyshield/
+    binary: proxyshield
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}}
+
+archives:
+  - id: default
+    formats:
+      - tar.gz
+      - zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE*
+      - README*
+      - config.json
+      - honeypots.json
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+release:
+  github:
+    owner: tejaspatil1936
+    name: proxyshield
+  draft: false
+  prerelease: auto
+  name_template: "ProxyShield v{{ .Version }}"

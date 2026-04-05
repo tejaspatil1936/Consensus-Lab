@@ -16,13 +16,25 @@ import (
 	"github.com/tejaspatil1936/proxyshield-core/internal/proxy"
 )
 
+// Set via ldflags at build time by GoReleaser.
+var (
+	version = "dev"
+	commit  = "none"
+)
+
 func main() {
 	configPath := flag.String("config", "config.json", "path to config file")
 	verbose := flag.Bool("verbose", false, "enable debug logging")
+	showVersion := flag.Bool("version", false, "print version and exit")
 	doBenchmark := flag.Bool("benchmark", false, "run benchmark mode")
 	requests := flag.Int("requests", 10000, "benchmark request count")
 	concurrency := flag.Int("concurrency", 100, "benchmark concurrency")
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("proxyshield %s (commit %s)\n", version, commit)
+		return
+	}
 
 	logger.SetVerbose(*verbose)
 
@@ -86,7 +98,7 @@ func main() {
 
 func printBanner(cfg *config.Config) {
 	fmt.Println(`╔══════════════════════════════════════════╗`)
-	fmt.Println(`║         ProxyShield v1.0.0               ║`)
+	fmt.Printf( "║         ProxyShield %-21s║\n", version)
 	fmt.Println(`║   High-Performance Reverse Proxy (Go)    ║`)
 	fmt.Println(`╠══════════════════════════════════════════╣`)
 	fmt.Printf( "║  Proxy:      http://localhost:%-12d║\n", cfg.Server.ListenPort)
