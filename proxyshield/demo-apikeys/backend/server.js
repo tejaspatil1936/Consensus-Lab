@@ -198,6 +198,12 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'healthy', keys: apiKeys.length, uptime: Math.floor((Date.now() - startTime) / 1000) });
 });
 
+// POST /api/scan — no-op endpoint used by the attack tester for entropy detection demo.
+// No rate limit is configured on this path so the WAF entropy check always runs first.
+app.post('/api/scan', (_req, res) => {
+  res.json({ ok: true });
+});
+
 // ── Start ────────────────────────────────────────────────────────────────────
 app.listen(3000, '127.0.0.1', () => {
   console.log('[KeyVault Backend] Running on http://127.0.0.1:3000');

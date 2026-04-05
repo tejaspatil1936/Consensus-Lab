@@ -69,15 +69,20 @@ export default function AttackPanel({ showNotification }) {
 
   const entropyAttack = async () => {
     setLoad('entropy', true);
-    const payload = btoa('A'.repeat(100) + String.fromCharCode(...Array.from({length: 200}, () => Math.floor(Math.random() * 256))));
+    // Build a payload with maximum character diversity → Shannon entropy ≈ 6.5 bits/byte,
+    // well above the 5.5 threshold. Uses /api/scan which has NO rate limit so the WAF
+    // entropy check always runs first (avoids the 429 bug from exhausted POST /api/keys bucket).
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[]{}|;:,.<>?`~';
+    const payload = Array.from({ length: 800 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
     try {
-      const res = await fetch('/api/keys', {
+      const res = await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'test', data: payload })
+        body: JSON.stringify({ data: payload })
       });
-      if (res.status === 403) setResult('entropy', 'High entropy anomaly blocked ✓', 'blocked');
-      else setResult('entropy', `Passed through (status ${res.status})`, 'success');
+      if (res.status === 403)      setResult('entropy', 'High entropy anomaly blocked ✓', 'blocked');
+      else if (res.status === 429) setResult('entropy', 'Rate limited — bucket exhausted, try again in 60s', 'blocked');
+      else                         setResult('entropy', `Not blocked — WAF passed it (${res.status})`, 'success');
     } catch (_) {
       setResult('entropy', 'Request failed', '');
     }
