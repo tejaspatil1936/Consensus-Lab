@@ -11,13 +11,14 @@ import (
 
 // Config is the top-level proxy configuration.
 type Config struct {
-	Server      ServerConfig     `json:"server"`
-	Middlewares []string         `json:"middlewares"`
-	RateLimits  []RateLimitRule  `json:"rate_limits"`
-	Security    SecurityConfig   `json:"security"`
-	Honeypots   []HoneypotConfig `json:"honeypots"`
-	Throttle    ThrottleConfig   `json:"throttle"`
-	Dashboard   DashboardConfig  `json:"dashboard"`
+	Server        ServerConfig     `json:"server"`
+	Middlewares   []string         `json:"middlewares"`
+	RateLimits    []RateLimitRule  `json:"rate_limits"`
+	Security      SecurityConfig   `json:"security"`
+	Honeypots     []HoneypotConfig `json:"honeypots"`
+	HoneypotFile  string           `json:"honeypot_file"`  // optional path to external honeypots JSON
+	Throttle      ThrottleConfig   `json:"throttle"`
+	Dashboard     DashboardConfig  `json:"dashboard"`
 }
 
 // ServerConfig holds the proxy and dashboard listen ports and backend URL.
@@ -67,6 +68,8 @@ type DashboardConfig struct {
 }
 
 // Load reads and parses the config file at path, then validates it.
+// If honeypot_file is set, honeypots are loaded from that file and merged
+// with any inline honeypots defined in the config.
 func Load(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -78,11 +81,82 @@ func Load(path string) (*Config, error) {
 		return nil, fmt.Errorf("parsing config: %w", err)
 	}
 
+	// Resolve honeypot_file relative to the config file's directory.
+	if cfg.HoneypotFile != "" {
+		hpPath := cfg.HoneypotFile
+		if !strings.HasPrefix(hpPath, "/") {
+			dir := path[:strings.LastIndex(path, "/")]
+			if dir == "" {
+				dir = "."
+			}
+			hpPath = dir + "/" + hpPath
+		}
+		extra, err := LoadHoneypotFile(hpPath)
+		if err != nil {
+			return nil, fmt.Errorf("loading honeypot_file %q: %w", hpPath, err)
+		}
+		// Merge: file entries first, then inline (inline overrides duplicates).
+		merged := make([]HoneypotConfig, 0, len(extra)+len(cfg.Honeypots))
+		seen := make(map[string]bool)
+		for _, h := range cfg.Honeypots {
+			seen[h.Path] = true
+			merged = append(merged, h)
+		}
+		for _, h := range extra {
+			if !seen[h.Path] {
+				merged = append(merged, h)
+			}
+		}
+		cfg.Honeypots = merged
+	}
+
 	if err := Validate(&cfg); err != nil {
 		return nil, fmt.Errorf("invalid config: %w", err)
 	}
 
 	return &cfg, nil
+}
+
+// LoadHoneypotFile reads a JSON file containing an array of HoneypotConfig entries.
+// Each entry must have a path and ban_minutes. Entries with a missing ban_minutes
+// default to 30.
+func LoadHoneypotFile(path string) ([]HoneypotConfig, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	// Support two formats:
+	//   1. Array of objects: [{"path":"/admin","ban_minutes":30}, ...]
+	//   2. Array of strings: ["/admin", "/.env", ...] — uses default ban_minutes=30
+	var raw json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, fmt.Errorf("invalid JSON: %w", err)
+	}
+
+	// Try object format first.
+	var entries []HoneypotConfig
+	if err := json.Unmarshal(raw, &entries); err == nil {
+		for i := range entries {
+			if entries[i].BanMinutes <= 0 {
+				entries[i].BanMinutes = 30
+			}
+		}
+		return entries, nil
+	}
+
+	// Fall back to string array format.
+	var paths []string
+	if err := json.Unmarshal(raw, &paths); err != nil {
+		return nil, fmt.Errorf("honeypot file must be a JSON array of objects or strings")
+	}
+	entries = make([]HoneypotConfig, 0, len(paths))
+	for _, p := range paths {
+		if p != "" {
+			entries = append(entries, HoneypotConfig{Path: p, BanMinutes: 30})
+		}
+	}
+	return entries, nil
 }
 
 // Validate checks all required fields and applies defaults for optional ones.

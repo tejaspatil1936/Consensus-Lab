@@ -16,12 +16,8 @@
     "max_body_bytes": 1048576,
     "blacklisted_ips": ["203.0.113.42"]
   },
-  "honeypots": [
-    { "path": "/admin", "ban_minutes": 30 },
-    { "path": "/.env", "ban_minutes": 60 },
-    { "path": "/wp-login.php", "ban_minutes": 30 },
-    { "path": "/phpmyadmin", "ban_minutes": 60 }
-  ],
+  "honeypot_file": "honeypots.json",
+  "honeypots": [],
   "throttle": {
     "warn_threshold": 0.8,
     "warn_delay_ms": 200,

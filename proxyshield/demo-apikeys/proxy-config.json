@@ -18,12 +18,8 @@
     "max_body_bytes": 1048576,
     "blacklisted_ips": []
   },
+  "honeypot_file": "../proxyshield-core/honeypots.json",
   "honeypots": [
-    { "path": "/admin", "ban_minutes": 5 },
-    { "path": "/.env", "ban_minutes": 10 },
-    { "path": "/wp-login.php", "ban_minutes": 5 },
-    { "path": "/phpmyadmin", "ban_minutes": 10 },
-    { "path": "/.git/config", "ban_minutes": 10 },
     { "path": "/api/internal", "ban_minutes": 5 }
   ],
   "throttle": {
