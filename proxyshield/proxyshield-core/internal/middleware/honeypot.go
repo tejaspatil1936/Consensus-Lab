@@ -24,7 +24,9 @@ func NewHoneypot(cfg *config.Config, banMap *sync.Map) *Honeypot {
 // Name returns the middleware identifier.
 func (m *Honeypot) Name() string { return "honeypot" }
 
-// Handle bans the client IP if it accesses any configured honeypot path.
+// Handle bans the client device if it accesses any configured honeypot path.
+// The ban key is the device fingerprint when available, otherwise the raw IP.
+// Both IP and fingerprint are stored in the BanEntry for dashboard display.
 func (m *Honeypot) Handle(w http.ResponseWriter, r *http.Request, ctx *reqctx.Context) bool {
 	path := r.URL.Path
 
@@ -33,16 +35,24 @@ func (m *Honeypot) Handle(w http.ResponseWriter, r *http.Request, ctx *reqctx.Co
 			continue
 		}
 
+		banKey := ctx.IP
+		if ctx.Fingerprint != "" {
+			banKey = ctx.Fingerprint
+		}
+
 		banDuration := time.Duration(hp.BanMinutes) * time.Minute
-		m.banMap.Store(ctx.IP, BanEntry{
+		m.banMap.Store(banKey, BanEntry{
 			BannedAt:    time.Now(),
 			BanDuration: banDuration,
+			IP:          ctx.IP,
+			Fingerprint: ctx.Fingerprint,
 		})
 
 		ctx.EventBus.Publish(event.Event{
 			Name: event.IPBanned,
 			Data: map[string]interface{}{
 				"ip": ctx.IP, "path": path, "banMinutes": hp.BanMinutes,
+				"fingerprint": ctx.Fingerprint, "details": ctx.FingerprintDetails,
 			},
 			Timestamp: time.Now(),
 		})
@@ -50,6 +60,7 @@ func (m *Honeypot) Handle(w http.ResponseWriter, r *http.Request, ctx *reqctx.Co
 			Name: event.RequestBlocked,
 			Data: map[string]interface{}{
 				"ip": ctx.IP, "path": path, "threatTag": "HONEYPOT_TRAP",
+				"fingerprint": ctx.Fingerprint, "details": ctx.FingerprintDetails,
 			},
 			Timestamp: time.Now(),
 		})

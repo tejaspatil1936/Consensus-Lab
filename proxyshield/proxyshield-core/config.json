@@ -4,7 +4,7 @@
     "backend_url": "http://localhost:8080",
     "dashboard_port": 9091
   },
-  "middlewares": ["ip-blacklist", "waf", "honeypot", "rate-limiter", "throttle", "headers"],
+  "middlewares": ["fingerprint", "ip-blacklist", "waf", "honeypot", "rate-limiter", "throttle", "headers", "cache"],
   "rate_limits": [
     { "path": "/getAllUsers", "method": "GET", "limit": 100, "window_seconds": 60, "algorithm": "token_bucket", "throttle_enabled": false },
     { "path": "/login", "method": "POST", "limit": 5, "window_seconds": 60, "algorithm": "sliding_window", "throttle_enabled": true }
@@ -24,5 +24,15 @@
     "critical_threshold": 0.9,
     "critical_delay_ms": 500
   },
-  "dashboard": { "enabled": true, "max_events": 1000 }
+  "dashboard": { "enabled": true, "max_events": 1000 },
+  "circuit_breaker": {
+    "enabled": true,
+    "failure_threshold": 5,
+    "cooldown_seconds": 30,
+    "success_threshold": 2
+  },
+  "cache": {
+    "enabled": false,
+    "rules": []
+  }
 }

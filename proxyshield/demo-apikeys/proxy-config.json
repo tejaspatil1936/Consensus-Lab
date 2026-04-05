@@ -4,7 +4,7 @@
     "backend_url": "http://127.0.0.1:3000",
     "dashboard_port": 9091
   },
-  "middlewares": ["ip-blacklist", "waf", "honeypot", "rate-limiter", "throttle", "headers"],
+  "middlewares": ["fingerprint", "ip-blacklist", "waf", "honeypot", "rate-limiter", "throttle", "headers", "cache"],
   "rate_limits": [
     { "path": "/api/login", "method": "POST", "limit": 5, "window_seconds": 60, "algorithm": "sliding_window", "throttle_enabled": true },
     { "path": "/api/keys", "method": "POST", "limit": 3, "window_seconds": 60, "algorithm": "sliding_window", "throttle_enabled": false },
@@ -28,5 +28,19 @@
     "critical_threshold": 0.9,
     "critical_delay_ms": 500
   },
-  "dashboard": { "enabled": true, "max_events": 1000 }
+  "dashboard": { "enabled": true, "max_events": 1000 },
+  "circuit_breaker": {
+    "enabled": true,
+    "failure_threshold": 5,
+    "cooldown_seconds": 30,
+    "success_threshold": 2
+  },
+  "cache": {
+    "enabled": true,
+    "rules": [
+      { "path": "/api/keys", "method": "GET", "ttl_seconds": 30 },
+      { "path": "/api/usage/overview", "method": "GET", "ttl_seconds": 10 },
+      { "path": "/api/health", "method": "GET", "ttl_seconds": 10 }
+    ]
+  }
 }

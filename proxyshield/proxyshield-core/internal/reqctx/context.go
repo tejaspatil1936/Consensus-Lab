@@ -23,11 +23,13 @@ type RateLimitInfo struct {
 // Context holds per-request state that flows through the middleware chain.
 // A fresh Context is created for every incoming request.
 type Context struct {
-	IP            string
-	Body          []byte
-	BodyText      string
-	StartTime     time.Time
-	RateLimitInfo *RateLimitInfo
-	Config        *config.Config
-	EventBus      *event.Bus
+	IP                 string
+	Body               []byte
+	BodyText           string
+	StartTime          time.Time
+	RateLimitInfo      *RateLimitInfo
+	Config             *config.Config
+	EventBus           *event.Bus
+	Fingerprint        string // SHA-256 based device fingerprint (first 16 hex chars)
+	FingerprintDetails string // Human-readable: "Chrome/120 | en-US | gzip"
 }

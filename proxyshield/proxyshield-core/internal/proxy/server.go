@@ -26,14 +26,16 @@ import (
 
 // Server is the main proxy server.
 type Server struct {
-	config     *config.Holder
-	eventBus   *event.Bus
-	chain      []middleware.Middleware
-	forwarder  *httputil.ReverseProxy
-	banMap     *sync.Map
-	tb         *algorithm.TokenBucket
-	sw         *algorithm.SlidingWindow
-	httpServer *http.Server
+	config         *config.Holder
+	eventBus       *event.Bus
+	chain          []middleware.Middleware
+	forwarder      *httputil.ReverseProxy
+	banMap         *sync.Map
+	tb             *algorithm.TokenBucket
+	sw             *algorithm.SlidingWindow
+	httpServer     *http.Server
+	circuitBreaker *middleware.CircuitBreaker
+	cache          *middleware.ResponseCache
 }
 
 // NewServer creates a new proxy server with all dependencies wired up.
@@ -50,12 +52,14 @@ func NewServer(holder *config.Holder, bus *event.Bus) (*Server, error) {
 	sw := algorithm.NewSlidingWindow()
 
 	s := &Server{
-		config:   holder,
-		eventBus: bus,
-		forwarder: fwd,
-		banMap:   banMap,
-		tb:       tb,
-		sw:       sw,
+		config:         holder,
+		eventBus:       bus,
+		forwarder:      fwd,
+		banMap:         banMap,
+		tb:             tb,
+		sw:             sw,
+		circuitBreaker: middleware.NewCircuitBreaker(),
+		cache:          middleware.NewResponseCache(),
 	}
 
 	mux := http.NewServeMux()
@@ -166,19 +170,73 @@ func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Wrap with RateLimitResponseWriter when rate limit info is present.
 	var responseWriter http.ResponseWriter = w
 	if ctx.RateLimitInfo != nil {
 		responseWriter = middleware.NewRateLimitResponseWriter(w, ctx.RateLimitInfo)
 	}
 
-	s.forwarder.ServeHTTP(responseWriter, r)
+	cbCfg := &cfg.CircuitBreaker
+
+	// Serve from cache if a valid entry exists — skip backend entirely.
+	if s.cache.ServeFromCache(responseWriter, r, ctx) {
+		s.circuitBreaker.RecordSuccess(cbCfg, s.eventBus) // treat cache hit as backend success
+		latency := time.Since(ctx.StartTime).Seconds() * 1000
+		s.eventBus.Publish(event.Event{
+			Name:      event.RequestForwarded,
+			Data:      map[string]interface{}{"ip": ip, "path": r.URL.Path, "method": r.Method, "latency_ms": latency, "cached": true},
+			Timestamp: time.Now(),
+		})
+		return
+	}
+
+	// Circuit breaker — reject immediately if backend is known-bad.
+	if !s.circuitBreaker.Allow(cbCfg) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		data, _ := json.Marshal(map[string]string{
+			"error":  "Service temporarily unavailable",
+			"reason": "CIRCUIT_BREAKER_OPEN",
+		})
+		w.Write(data)
+		s.eventBus.Publish(event.Event{
+			Name:      event.RequestBlocked,
+			Data:      map[string]interface{}{"ip": ip, "path": r.URL.Path, "threatTag": "CIRCUIT_BREAKER", "fingerprint": ctx.Fingerprint},
+			Timestamp: time.Now(),
+		})
+		return
+	}
+
+	// Forward to backend, capturing status for circuit breaker and optionally
+	// buffering the response for caching.
+	recorder := s.cache.NewRecorder(responseWriter, r, ctx)
+	var statusCode int
+
+	if recorder != nil {
+		// Cache-eligible path: buffer response so we can add headers before sending.
+		s.forwarder.ServeHTTP(recorder, r)
+		statusCode = recorder.StatusCode()
+		recorder.Flush("MISS")
+		if statusCode < 500 {
+			s.cache.Store(r, recorder, ctx)
+		}
+	} else {
+		// Normal path: pass-through with status capture only.
+		sc := middleware.NewStatusCapture(responseWriter)
+		s.forwarder.ServeHTTP(sc, r)
+		statusCode = sc.StatusCode()
+	}
+
+	if statusCode >= 500 {
+		s.circuitBreaker.RecordFailure(cbCfg, s.eventBus)
+	} else {
+		s.circuitBreaker.RecordSuccess(cbCfg, s.eventBus)
+	}
 
 	latency := time.Since(ctx.StartTime).Seconds() * 1000
 	s.eventBus.Publish(event.Event{
-		Name: event.RequestForwarded,
-		Data: map[string]interface{}{
-			"ip": ip, "path": r.URL.Path, "method": r.Method, "latency_ms": latency,
-		},
+		Name:      event.RequestForwarded,
+		Data:      map[string]interface{}{"ip": ip, "path": r.URL.Path, "method": r.Method, "latency_ms": latency},
 		Timestamp: time.Now(),
 	})
 	logger.Info("request forwarded",

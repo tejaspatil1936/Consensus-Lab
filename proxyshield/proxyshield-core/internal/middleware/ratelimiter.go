@@ -44,7 +44,12 @@ func (m *RateLimiter) Handle(w http.ResponseWriter, r *http.Request, ctx *reqctx
 		return false
 	}
 
-	key := fmt.Sprintf("%s:%s:%s", ctx.IP, r.Method, matched.Path)
+	// Use device fingerprint when available so NAT peers get independent buckets.
+	identifier := ctx.IP
+	if ctx.Fingerprint != "" {
+		identifier = ctx.Fingerprint
+	}
+	key := fmt.Sprintf("%s:%s:%s", identifier, r.Method, matched.Path)
 
 	var result algorithm.RateLimitResult
 	if matched.Algorithm == "token_bucket" {
@@ -86,6 +91,7 @@ func (m *RateLimiter) Handle(w http.ResponseWriter, r *http.Request, ctx *reqctx
 			Name: event.RequestBlocked,
 			Data: map[string]interface{}{
 				"ip": ctx.IP, "path": r.URL.Path, "threatTag": threatTag,
+				"fingerprint": ctx.Fingerprint,
 			},
 			Timestamp: time.Now(),
 		})

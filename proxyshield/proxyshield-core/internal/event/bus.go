@@ -15,6 +15,9 @@ const (
 	IPBanned         = "ip:banned"
 	ConfigReloaded   = "config:reloaded"
 	RateLimitWarning = "rate-limit:warning"
+	CircuitOpened    = "circuit:opened"
+	CircuitClosed    = "circuit:closed"
+	CacheHit         = "cache:hit"
 )
 
 // subscribeAllKey is the internal key used for SubscribeAll channels.

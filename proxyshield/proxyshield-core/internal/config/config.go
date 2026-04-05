@@ -11,14 +11,37 @@ import (
 
 // Config is the top-level proxy configuration.
 type Config struct {
-	Server        ServerConfig     `json:"server"`
-	Middlewares   []string         `json:"middlewares"`
-	RateLimits    []RateLimitRule  `json:"rate_limits"`
-	Security      SecurityConfig   `json:"security"`
-	Honeypots     []HoneypotConfig `json:"honeypots"`
-	HoneypotFile  string           `json:"honeypot_file"`  // optional path to external honeypots JSON
-	Throttle      ThrottleConfig   `json:"throttle"`
-	Dashboard     DashboardConfig  `json:"dashboard"`
+	Server         ServerConfig         `json:"server"`
+	Middlewares    []string             `json:"middlewares"`
+	RateLimits     []RateLimitRule      `json:"rate_limits"`
+	Security       SecurityConfig       `json:"security"`
+	Honeypots      []HoneypotConfig     `json:"honeypots"`
+	HoneypotFile   string               `json:"honeypot_file"` // optional path to external honeypots JSON
+	Throttle       ThrottleConfig       `json:"throttle"`
+	Dashboard      DashboardConfig      `json:"dashboard"`
+	CircuitBreaker CircuitBreakerConfig `json:"circuit_breaker"`
+	Cache          CacheConfig          `json:"cache"`
+}
+
+// CircuitBreakerConfig controls the circuit breaker that protects against backend failures.
+type CircuitBreakerConfig struct {
+	Enabled          bool `json:"enabled"`
+	FailureThreshold int  `json:"failure_threshold"` // failures before opening
+	CooldownSeconds  int  `json:"cooldown_seconds"`  // time in OPEN before trying HALF_OPEN
+	SuccessThreshold int  `json:"success_threshold"` // successes in HALF_OPEN to close
+}
+
+// CacheRule defines a path+method combination to cache with a given TTL.
+type CacheRule struct {
+	Path       string `json:"path"`
+	Method     string `json:"method"`
+	TTLSeconds int    `json:"ttl_seconds"`
+}
+
+// CacheConfig controls response caching for GET endpoints.
+type CacheConfig struct {
+	Enabled bool        `json:"enabled"`
+	Rules   []CacheRule `json:"rules"`
 }
 
 // ServerConfig holds the proxy and dashboard listen ports and backend URL.
@@ -85,9 +108,9 @@ func Load(path string) (*Config, error) {
 	if cfg.HoneypotFile != "" {
 		hpPath := cfg.HoneypotFile
 		if !strings.HasPrefix(hpPath, "/") {
-			dir := path[:strings.LastIndex(path, "/")]
-			if dir == "" {
-				dir = "."
+			dir := "."
+			if idx := strings.LastIndex(path, "/"); idx >= 0 {
+				dir = path[:idx]
 			}
 			hpPath = dir + "/" + hpPath
 		}
@@ -227,6 +250,16 @@ func Validate(cfg *Config) error {
 	}
 	if cfg.Throttle.CriticalDelayMs == 0 {
 		cfg.Throttle.CriticalDelayMs = 500
+	}
+
+	if cfg.CircuitBreaker.FailureThreshold <= 0 {
+		cfg.CircuitBreaker.FailureThreshold = 5
+	}
+	if cfg.CircuitBreaker.CooldownSeconds <= 0 {
+		cfg.CircuitBreaker.CooldownSeconds = 30
+	}
+	if cfg.CircuitBreaker.SuccessThreshold <= 0 {
+		cfg.CircuitBreaker.SuccessThreshold = 2
 	}
 
 	return nil
