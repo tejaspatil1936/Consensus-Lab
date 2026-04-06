@@ -48,7 +48,7 @@ changelog:
 release:
   github:
     owner: tejaspatil1936
-    name: proxyshield
+    name: Consensus-Lab
   draft: false
   prerelease: auto
   name_template: "ProxyShield v{{ .Version }}"
